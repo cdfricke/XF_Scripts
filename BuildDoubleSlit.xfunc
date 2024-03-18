@@ -1,0 +1,82 @@
+// CREATED BY CONNOR FRICKE, 5-MARCH-2024
+// BuildDoubleSlit.xfunc
+// function BuildDoubleSlit()
+//
+// This function will build the geometry of our double slit experiment. The frequency
+// of the incoming wave should be matched to the midpoint of our project's frequency range.
+// The slit separation will determine the resulting diffraction pattern. See the following:
+// http://hyperphysics.phy-astr.gsu.edu/hbase/phyopt/slits.html
+// As slit separation (distance between the midpoints of each slit) increases, we see the 
+// "spread" of the diffraction pattern decrease.
+//
+// BuildDoubelSlit() returns a reference to the model of the double slit within the project tree,
+// this way we can assign the material to this model later. It takes three parameters,
+// slit separation, sheet width, and sheet height.
+//
+// ***************************************
+
+function BuildDoubleSlit(wavelength, slitSeparation)
+{
+	// *** PREDEFINED PARAMETERS ***
+	var sheetDepth = 0.1 * wavelength;
+	var slitWidth = 0.25 * wavelength;
+	// Sheet "thickness" should be small compared to wavelength
+	// Sheet width and height should be large enough such that the light does not have time	
+	// to propogate from the edge of the sheet to the center within our sim time
+
+	// *** IMPORTANT LOCATIONS AND DIRECTIONS ***
+	var wcs = new CoordinateSystem( Cartesian3D("0 m", "0 m", "0 m") );
+	var xhat = new CoordinateSystemDirection(1, 0, 0);
+	var yhat = new CoordinateSystemDirection(0, 1, 0);
+	var zhat = new CoordinateSystemDirection(0, 0, 1);
+
+	// *** START MODELIING ***
+	var geometryAssembly = App.getActiveProject().getGeometryAssembly();
+	geometryAssembly.clear();
+
+	// *** SHEET ***
+	// create corners of geometry and add them to the pts array
+	var pts = new Array();
+	pts[0] = new Cartesian3D(20, 0, -20);
+	pts[1] = new Cartesian3D(20, 0, 20);
+	pts[2] = new Cartesian3D(-20, 0, 20);
+	pts[3] = new Cartesian3D(-20, 0, -20);
+
+	// since pts are in the xz-plane, we want to extrude our sketch in the yhat direction
+	var sheetSketch = constructSketch(pts, wcs);	// constructSketch is a user-defined function
+	var sheetModel = new Model( Recipe( Extrude(sheetSketch, sheetDepth, yhat) ) );
+
+	// *** LEFT SLIT ***
+	pts[0] = new Cartesian3D(0.5*(slitSeparation + slitWidth), 0, -20);
+	pts[1] = new Cartesian3D(0.5*(slitSeparation + slitWidth), 0, 20);
+	pts[2] = new Cartesian3D(0.5*(slitSeparation - slitWidth), 0, 20);
+	pts[3] = new Cartesian3D(0.5*(slitSeparation - slitWidth), 0, -20);
+
+	var leftSketch = constructSketch(pts, wcs);	// constructSketch is a user-defined function
+	var leftModel = new Model( Recipe( Extrude(leftSketch, sheetDepth, yhat) ) );
+
+	// *** RIGHT SLIT ***
+	pts[0] = new Cartesian3D(-0.5*(slitSeparation + slitWidth), 0, -20);
+	pts[1] = new Cartesian3D(-0.5*(slitSeparation + slitWidth), 0, 20);
+	pts[2] = new Cartesian3D(-0.5*(slitSeparation - slitWidth), 0, 20);
+	pts[3] = new Cartesian3D(-0.5*(slitSeparation - slitWidth), 0, -20);
+
+	var rightSketch = constructSketch(pts, wcs);	// constructSketch is a user-defined function
+	var rightModel = new Model( Recipe( Extrude(rightSketch, 2*sheetDepth, yhat) ) );
+
+	// *** BOOLEAN OPERATION ***
+	// in boolean operations, we add parts one at a time. The first part is the blank, the rest are considered tools.
+	// The resulting object would be "blank" - "tools"
+	var subtract = new BooleanOperation();
+	subtract.setBooleanType("SubtractBooleanOperation");
+	subtract.addPart(sheetModel);
+	subtract.addPart(leftModel);
+	subtract.addPart(rightModel);
+
+	// name model and add to assembly
+	var doubleSlit = new Model(Recipe(subtract));
+	doubleSlit.name = "Double Slit Model";
+	
+	// we want to return the reference to this model object so that we can assign the material later.
+	return geometryAssembly.append(doubleSlit);
+}

@@ -1,0 +1,66 @@
+// CREATED BY CONNOR FRICKE, 5-MARCH-2024
+// Test script for development of the BuildDoubleSlit() function.
+// Creates the geometry with parameters as defined at the top of the file.
+
+// *** PREDEFINED PARAMETERS ***
+var wavelength = 1.2;
+var sheetDepth = 0.1 * wavelength;
+var slitSeparation = 2.0;
+var slitWidth = 0.25 * wavelength;
+// Sheet "thickness" should be small compared to wavelength
+// Sheet width and height should be large enough such that the light does not have time
+// to propogate from the edge of the sheet to the center within our sim time
+
+// *** IMPORTANT LOCATIONS AND DIRECTIONS ***
+var wcs = new CoordinateSystem( Cartesian3D("0 m", "0 m", "0 m") );
+var xhat = new CoordinateSystemDirection(1, 0, 0);
+var yhat = new CoordinateSystemDirection(0, 1, 0);
+var zhat = new CoordinateSystemDirection(0, 0, 1);
+
+// *** START MODELIING ***
+var geometryAssembly = App.getActiveProject().getGeometryAssembly();
+geometryAssembly.clear();
+
+// *** SHEET ***
+// create corners of geometry and add them to the pts array
+var pts = new Array();
+pts[0] = new Cartesian3D(20, 0, 0);
+pts[1] = new Cartesian3D(20, 0, 40);
+pts[2] = new Cartesian3D(-20, 0, 40);
+pts[3] = new Cartesian3D(-20, 0, 0);
+
+// since pts are in the xz-plane, we want to extrude our sketch in the yhat direction
+var sheetSketch = constructSketch(pts, wcs);	// constructSketch is a user-defined function
+var sheetModel = new Model( Recipe( Extrude(sheetSketch, sheetDepth, yhat) ) );
+
+// *** LEFT SLIT ***
+pts[0] = new Cartesian3D(0.5*(slitSeparation + slitWidth), 0, 0);
+pts[1] = new Cartesian3D(0.5*(slitSeparation + slitWidth), 0, 40);
+pts[2] = new Cartesian3D(0.5*(slitSeparation - slitWidth), 0, 40);
+pts[3] = new Cartesian3D(0.5*(slitSeparation - slitWidth), 0, 0);
+
+var leftSketch = constructSketch(pts, wcs);	// constructSketch is a user-defined function
+var leftModel = new Model( Recipe( Extrude(leftSketch, sheetDepth, yhat) ) );
+
+// *** RIGHT SLIT ***
+pts[0] = new Cartesian3D(-0.5*(slitSeparation + slitWidth), 0, 0);
+pts[1] = new Cartesian3D(-0.5*(slitSeparation + slitWidth), 0, 40);
+pts[2] = new Cartesian3D(-0.5*(slitSeparation - slitWidth), 0, 40);
+pts[3] = new Cartesian3D(-0.5*(slitSeparation - slitWidth), 0, 0);
+
+var rightSketch = constructSketch(pts, wcs);	// constructSketch is a user-defined function
+var rightModel = new Model( Recipe( Extrude(rightSketch, 2*sheetDepth, yhat) ) );
+
+// *** BOOLEAN OPERATION ***
+// in boolean operations, we add parts one at a time. The first part is the blank, the rest are considered tools.
+// The resulting object would be "blank" - "tools"
+var subtract = new BooleanOperation();
+subtract.setBooleanType("SubtractBooleanOperation");
+subtract.addPart(sheetModel);
+subtract.addPart(leftModel);
+subtract.addPart(rightModel);
+
+// name model and add to assembly
+var doubleSlit = new Model(Recipe(subtract));
+doubleSlit.name = "Double Slit Model";
+geometryAssembly.append(doubleSlit);

@@ -1,0 +1,35 @@
+// CREATED BY CONNOR FRICKE, 4-MARCH-2024
+// ProjectGeometry Script (.xmacro)
+// This script will eventually create the geometry necessary to perform
+// a double slit experiment. Current functionality only includes the creation
+// of a spherical particle after prompting the user for radius of the particle.
+// **********************************************************
+
+var materialList = App.getActiveProject().getMaterialList();		// we'll need this to assign materials
+var geometryAssembly = App.getActiveProject().getGeometryAssembly();
+geometryAssembly.clear();
+
+// *** CREATE PARTS ***
+// "After creating a specific feature, create a Recipe to hold it, and set the recipe into a Model."
+var sphereModel = new Model();						// create model
+// Sphere() is a child of Primitive, which is a child of Feature -> SPHERE IS OUR "FEATURE"
+// see the Feature class inheritance diagram.
+var sphereFeature = new Sphere(AskUser("Particle Radius:"));
+var sphereRecipe = new Recipe(sphereFeature);		// create Recipe to store the feature, then pass recipe to the model.
+sphereModel.setRecipe(sphereRecipe);
+sphereModel.name = "Particle";
+
+// *** ADD PARTS TO ASSEMBLY ***
+// We can either create an Assembly object with "new Assembly(Part part)" or we can create
+// each part separately and add them to the project's current assembly object.
+// "Part" is a class with children: Assembly, Model, Sketch, VolumetricPart.
+// This means we must replace the Part object parameter with one of it's children classes, as done below with
+// a "Model" object.
+geometryAssembly.append(sphereModel);
+var pec = materialList.getMaterial("PEC");
+
+// *** ASSIGN MATERIALS & SET VISIBILITY***
+App.getActiveProject().setMaterial(geometryAssembly, pec);
+App.setPartVisibility(geometryAssembly, true);
+
+App.saveCurrentProject();

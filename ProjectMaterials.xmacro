@@ -1,0 +1,37 @@
+// CREATED BY CONNOR FRICKE, 29-FEB-2024
+// ProjectMaterials Script (.xmacro)
+// This script will modify the materials list of the active project. Currently it simply adds
+// a PEC to the materialList and does a bit of manipulation with said material.
+// **********************************************************
+
+var proj = App.getActiveProject();
+var mats = proj.getMaterialList();	// reference to the materialList
+mats.clear();
+
+// *** CREATE MATERIAL ***
+// create PhysicalMaterial with constructor parameter -> ElectricProperties (PEC) / Magnetic Properties
+var pecProperties = new PEC();
+var electromagneticParameters = new PhysicalMaterial(pecProperties);	// to set E/M Properties
+var physicalParameters = new PhysicalParameters();						// to set physical properties
+physicalParameters.setDensity("0 kg/m^3");
+
+// *** DEFINE MATERIAL CHARACTERISTICS ***
+// Create new Material with either a Freespace or PhysicalMaterial object parameter, which defines the E/M Properties.
+// To define the physical properties of this Material (density, heat capacity, etc.) we can
+// call setPhysicalDetails(), passing a PhysicalParameters object.
+var mat1 = new Material();	
+mat1.setDetails(electromagneticParameters);
+mat1.setPhysicalDetails(physicalParameters);	// set physicalDetails based on the physicalParameters object.
+mat1.name = "PEC";
+
+// *** MATERIAL APPEARANCE ***
+// working with appearance requires creating a BodyAppearance() object and then tweaking edgeAppearance, faceAppearance
+// etc. as done below for the faceAppearance
+var appearance = new BodyAppearance();
+appearance.getFaceAppearance().setColor( Color(189, 0, 145, 0.86) );
+mat1.setAppearance(appearance);
+
+// *** ADD TO MATERIAL LIST ***
+mats.addMaterial(mat1);		// add material to materialList
+
+App.saveCurrentProject();

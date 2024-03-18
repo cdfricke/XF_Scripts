@@ -1,0 +1,27 @@
+// CREATED BY CONNOR FRICKE, 29-FEB-2024
+// ProjectDimensionality Script (.xmacro)
+// This script will modify the display units of the active project to reflect the inputs of the 
+// setPreference() function calls below. In addition, it will get the frequency range of interest.
+// **************************************************
+
+var proj = App.getActiveProject();	// reference to our project (see "class Project" in docs)
+Output.println(proj.name)
+var prefs = proj.getUnitPreferences(); 	// reference to UnitPreferences
+
+// *** FOR THIS PROJECT, THESE ARE THE UNITS WE WANT / CARE ABOUT ***
+/* UnitClass::Dimensionality common options
+Length, Mass, Time, Frequency, Energy, etc. (See "enum Dimensionality" in docs, there are a lot)
+*/
+prefs.setPreference("MHz");	// the UnitClass we are modifying is deduced automatically
+prefs.setPreference("m");
+prefs.setPreference("ns");
+
+// confirm by outputting preferences to console
+Output.println( "Time Units: " + prefs.getPreference(UnitClass.Time) );
+Output.println( "Length Units: " + prefs.getPreference(UnitClass.Length) );
+Output.println( "Frequency Units: " + prefs.getPreference(UnitClass.Frequency) );
+
+App.saveCurrentProject();
+
+
+
