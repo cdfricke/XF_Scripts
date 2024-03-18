@@ -1,0 +1,65 @@
+// CREATED BY CONNOR FRICKE, 4-MARCH-2024
+// DoubleSlitExperiment Script (.xmacro)
+// Currently, this is just meant to be a list of functions/scripts
+// that need to be worked out and what order they should be called when
+// setting up the double slit experiement in XFdtd. Eventually, this script
+// will be able to be used to turn a blank XFdtd project into a full implementation
+// of the double slit experiment. Simulations may or may not be set up by the script.
+// ***************************************************
+
+// STEP 1: DECIDE ON UNITS AND FREQUENCY RANGE OF INTEREST
+// --- Frequency range of interest should probably be specified first. From this
+// we can infer some information based on the central wavelength of this range
+// such as length units. From the central frequency, we can gather the 
+// wavelength, which gives us an idea of our units as well as a specific target slit width.
+var units = ["MHz", "ns", "m"]
+var minFrequency = "200 MHz";
+var maxFrequency = "300 MHz";
+ProjectDimensions(units, minFrequency, maxFrequency);
+
+// STEP 2: CREATE GEOMETRY
+// --- Once we know the frequency of light we will be looking at, we can choose an ideal
+// slit width based on the interference pattern we want to see. (i.e. the number of minima
+// and maxima, the angular position of the first minima).
+// --- Once we decide on slit width, we can construct the geometry based around this. The
+// "sheet" of the double slit must be very large relative to the slit width and should be 
+// thin relative to the wavelength. (see current double slit proj. for working example)
+var wavelength = 1.2
+var slitSeparation = Number(AskUser("Slit Separation (m):"));
+var model = BuildDoubleSlit(wavelength, slitSeparation);
+// var model = BuildDoubleSlit(slitSeparation, sheetWidth, sheetHeight);
+
+// STEP 3: ADD and ASSIGN MATERIALS
+// --- This step is easy enough. Material doesn't matter too much for the double slit.
+// In this case we can just use a standard PEC, which we already have an example of in
+// the file ProjectMaterials.xmacro. (Turn these macros into functions and then call them'
+// in this script file.)
+var pecMaterial = CreatePEC();
+App.getActiveProject().setMaterial(model, pecMaterial);
+
+// STEP 4: SPECIFY EXCITATION & CREATE WAVEFORM
+// --- We will want to create a gaussian plane wave external excitation. The Etheta and Ephi
+// amplitudes as well as incident theta and incident phi will have to depend on the geometry.
+// --- Currently, ProjectWaveforms.xmacro handles this for the case of a wave from the +Y
+// direction and oscillations in the z direction.
+CreatePlaneWaveExcitation("90 deg", "90 deg", "1.0 V/m", "0.0 V/m");
+
+// STEP 5: ADD SENSORS
+// --- This step is fairly easy as well. Just create a planar sensor at the origin with a
+// normal vector to match the oscillation amplitude direction of the incoming plane wave.
+// --- ProjectSensors.xmacro handles this for a planar sensor at the origin in the xy-plane.
+CreatePlanarSensor("Z");
+
+// STEP 6: CONFIGURE GRID and MESH and BOUNDARY CONDITIONS
+// --- So far, all we are doing is deciding the extents of the mesh bounding box, but everything else is left
+// to the default settings of the XFdtd project.
+var xrange = new Range1D("-20 m", "20 m");
+var yrange = new Range1D("-6 m", "0.5 m");
+var zrange = new Range1D("-20 m", "20 m");
+SetGridExtents(xrange, yrange, zrange);
+
+// STEP 7: SET UP SIMULATION AND QUEUE (OPTIONAL)
+// --- This is an optional step. We may prefer to leave it up to the user to set
+// up their own simulations and queue it. I haven't worked yet with setting up simulations either.
+
+

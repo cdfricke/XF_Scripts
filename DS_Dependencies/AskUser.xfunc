@@ -1,0 +1,26 @@
+// CREATED BY CONNOR FRICKE, 29-FEB-2024
+// AskUser() function (.xfunc)
+// Adapted from example scripts within the XF Scripting API.
+// See GUI Examples
+
+function AskUser(userPrompt)
+{
+	// FROM XFDTD SCRIPTING API: A SimpleDialog and LabeledTextEdit example
+	var dialog = new SimpleDialog();
+	dialog.windowTitle = "Required Input";
+	// Add any widgets to this dialog
+	var lineEdit = new LabeledLineEdit();
+	lineEdit.label = userPrompt; // The text for the label before the line edit
+	lineEdit.text = ""; // The initial string for the line edit
+	dialog.add( lineEdit );
+	if( dialog.exec() == Dialog.Accepted )
+	{
+	    Output.println( "Thank You :)" );
+		return lineEdit.text;
+	}
+	else  // Dialog.Rejected was returned
+	{
+	    Output.println( "Action was cancelled." );
+		return "0";
+	}
+}

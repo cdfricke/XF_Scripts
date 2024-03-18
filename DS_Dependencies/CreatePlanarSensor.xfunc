@@ -1,0 +1,74 @@
+// CREATED BY CONNOR FRICKE, 18-MARCH-2024
+// CreatePlanarSensor.xfunc
+// function CreatePlanarSensor()
+//
+// This function will create a planar sensor at the origin in a plane defined by the user. The normal direction of the
+// planar sensor is defined by the following rule:
+// if (xy-plane): normal in z-direction
+// if (yz-plane): normal in x-direction
+// if (xz-plane): normal in y-direction
+//
+// CreatePlanarSensor() does not return anything. It requires one parameter, which is the normal direction of
+// the planar sensor.
+//
+// ***************************************
+
+function CreatePlanarSensor(normalVector)
+{
+	App.getActiveProject().getNearFieldSensorList().clear();
+
+	// *** Commonly Used Positions and Directions ***
+	var origin = new CoordinateSystemPosition(0, 0, 0);
+	var zhat = new CoordinateSystemDirection(0, 0, 1);
+	var yhat = new CoordinateSystemDirection(0, 1, 0);
+	var xhat = new CoordinateSystemDirection(1, 0, 0);
+
+	// *** CREATE NEAR FIELD SENSOR ***
+	var planarSensor = new SurfaceSensor();
+	
+
+	// *** GEOMETRY FOR NEAR FIELD SENSOR ***
+	var planeSurfaceGeometry = new PlaneSurfaceGeometry();
+	planeSurfaceGeometry.setPosition(origin);	// centered at origin
+	
+	// *** DECIDE NORMAL VECTOR ***
+	if (normalVector.toUpperCase() == "Z") 
+	{
+		planeSurfaceGeometry.setNormal(zhat);
+		planarSensor.name = "XY-Plane Sensor";
+	}
+	else if (normalVector.toUpperCase() == "Y")
+	{
+		planeSurfaceGeometry.setNormal(yhat);
+		planarSensor.name = "XZ-Plane Sensor";
+	}
+	else if (normalVector.toUpperCase() == "X")
+	{
+		planeSurfaceGeometry.setNormal(xhat);
+		planarSensor.name = "YZ-Plane Sensor";
+	}
+	else
+		Output.println("ERROR: in CreatePlanarSensor(), passed parameter faulty.")
+		
+	planarSensor.setGeometry(planeSurfaceGeometry);	// apply this geometry to our SurfaceSensor object
+
+	// *** SENSOR DEFINITION FOR NEAR FIELD SENSOR ***
+	// Here I've listed all options available to the SurfaceSensorDataDefinition class. Only a few are used.
+	var planarSensorDef = new SurfaceSensorDataDefinition();
+	planarSensorDef.setCollectEFieldsVsTime(true);	// this
+	planarSensorDef.setCollectHFieldsVsTime(false);
+	planarSensorDef.setCollectJFieldsVsTime(false);
+	planarSensorDef.setCollectBFieldsVsTime(false);
+	planarSensorDef.setCollectScatteredEFieldsVsTime(true);	// this
+	planarSensorDef.setCollectScatteredHFieldsVsTime(false);
+	planarSensorDef.setCollectScatteredBFieldsVsTime(false);
+	planarSensorDef.setCollectSteadyEFieldsVsFreqOfInterest(true); // this
+	planarSensorDef.setCollectSteadyHFieldsVsFreqOfInterest(false);
+	planarSensorDef.setCollectSteadyBFieldsVsFreqOfInterest(false);
+	planarSensorDef.setCollectSteadyJFieldsVsFreqOfInterest(false);
+	planarSensorDef.setCollectDissipatedPowerDensityVsFreqOfInterest(false);
+	planarSensor.setDataDefinition(planarSensorDef)
+
+	// *** ADD SENSORS TO LISTS ***
+	App.getActiveProject().getNearFieldSensorList().addNearFieldSensor(planarSensor)
+}

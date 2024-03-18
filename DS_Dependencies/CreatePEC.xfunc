@@ -1,0 +1,44 @@
+// CREATED BY CONNOR FRICKE, 18-MARCH-2024
+// CreatePEC.xfunc
+// function CreatePEC()
+//
+// This function will create a PEC() material and add it to the materials list of the project tree.
+//
+// CreatePEC() does not require any parameters. It returns a reference to the PEC material created.
+//
+// ***************************************
+
+function CreatePEC()
+{
+	var proj = App.getActiveProject();
+	var mats = proj.getMaterialList();	// reference to the materialList
+	mats.clear();
+
+	// *** CREATE MATERIAL ***
+	// create PhysicalMaterial with constructor parameter -> ElectricProperties (PEC) / Magnetic Properties
+	var pecProperties = new PEC();
+	var electromagneticParameters = new PhysicalMaterial(pecProperties);	// to set E/M Properties
+	var physicalParameters = new PhysicalParameters();						// to set physical properties
+	physicalParameters.setDensity("0 kg/m^3");
+	
+	// *** DEFINE MATERIAL CHARACTERISTICS ***
+	// Create new Material with either a Freespace or PhysicalMaterial object parameter, which defines the E/M Properties.
+	// To define the physical properties of this Material (density, heat capacity, etc.) we can
+	// call setPhysicalDetails(), passing a PhysicalParameters object.
+	var material = new Material();	
+	material.setDetails(electromagneticParameters);
+	material.setPhysicalDetails(physicalParameters);	// set physicalDetails based on the physicalParameters object.
+	material.name = "PEC";
+
+	// *** MATERIAL APPEARANCE ***
+	// working with appearance requires creating a BodyAppearance() object and then tweaking edgeAppearance, faceAppearance
+	// etc. as done below for the faceAppearance
+	var appearance = new BodyAppearance();
+	appearance.getFaceAppearance().setColor( Color(255, 255, 255, 255) );
+	material.setAppearance(appearance);
+
+	// *** ADD TO MATERIAL LIST ***
+	mats.addMaterial(material);		// add material to materialList
+	
+	return material;
+}
