@@ -1,0 +1,28 @@
+// Programmer: Connor Fricke
+// File: exportParamsAndDiams.xmacro
+// Latest Revision: 30-April-2024 --> Created
+
+var OUTPUT_CSV = "test.csv";
+var OUTPUT_LOCATION = "CSVFiles/"; // relative to project directory because first char is not '/'
+var paramsList = App.getActiveProject().getParameterList();
+// to create a single value array, we must use bracket notation
+// because new Array(10) tries to create an array of 10 values. Not what we want!
+var a = [paramsList.getValue("a")];
+var b = [paramsList.getValue("b")];
+var z = [paramsList.getValue("z")];
+var DATA = new Array(a, b, z);
+var COLUMN_NAMES = new Array("a", "b", "z");
+var MODE = IODevice.WriteOnly;
+
+// call function
+var success = exportToCSV(fileName=OUTPUT_CSV, dirName=OUTPUT_LOCATION, columnNames=COLUMN_NAMES, columnData=DATA, mode=MODE);
+
+// now that we have the paramaters in the CSV, enter IODevice.Append mode and output the diameter data.
+// We must also change the column name array and the dataframe to reflect this.
+MODE = IODevice.Append;
+COLUMN_NAMES = new Array("diameter")
+var diameters = new Array(0.04, 0.03, 0.05, 0.07, 0.03, 0.05);
+DATA = new Array(diameters);
+
+// call function once again
+success = exportToCSV(fileName=OUTPUT_CSV, dirName=OUTPUT_LOCATION, columnNames=COLUMN_NAMES, columnData=DATA, mode=MODE);

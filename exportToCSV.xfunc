@@ -1,0 +1,113 @@
+// Programmer: Connor Fricke (cd.fricke23@gmail.com)
+// File: exportArray.xfunc
+// Latest Revision: 30-April-2024 --> Completed, v1
+
+// @@params:
+// 	fileName: string type - File name of csv to be written to
+// 	dirName: string type - Directory name for data to be written to. Can be a relative path or absolute path.
+//			 Path must begin with '/' for absolute path. Both relative and absolute paths end with '/'.
+// 	columnNames: string array type - contains names of columns
+// 	columnData: 2D float array - contains data to be written. Must be rectangular data.
+// 	mode: IODevice.OpenModeFlag enum type - mode for opening the file for use.
+//
+// @@return:
+//	int type, either EXIT_FAILURE (0) or EXIT_SUCCESS (1).
+//
+// ~~~ EXAMPLE ~~~
+// var colNames = new Array("a", "b", "c");
+// var aData = new Array(0.4, 0.4, 0.5);
+// var bData = new Array(0.3, 0.1, 0.2);
+// var cData = new Array(0.1, 0.05, 0.2);
+// var dataFrame = new Array(aData, bData, cData);
+// var success = exportToCSV("test.txt", "CSVFiles/", colNames, dataFrame, IODevice.WriteOnly);
+function exportToCSV(fileName, dirName, columnNames, columnData, mode) {
+
+	// RETURN VALUES
+	var EXIT_SUCCESS = 1;
+	var EXIT_FAILURE = 0;
+
+	// *** PARAMETER VALIDATION ***
+	if (fileName == "" || fileName == undefined)
+	{
+		Output.println("Invalid File name.");
+		return EXIT_FAILURE;
+	}
+
+	if (dirName == "" || dirName == undefined || dirName.slice(-1) != "/")
+	{
+		Output.println("Invalid directory name.");
+		return EXIT_FAILURE;
+	}
+
+	if (dirName.charAt(0) != "/") // assume relative path
+	{
+		if (App.getActiveProject().getProjectDirectory() == "") 
+		{
+			Output.println("Cannot save files in relative path. Project must be saved first.")
+			return EXIT_FAILURE;
+		}
+		else { var DIRECTORY = App.getActiveProject().getProjectDirectory() + "/" + dirName; }
+	}
+	else	// assume absolute path
+	{
+		var DIRECTORY = dirName;
+	}
+	
+	// *** MAKE DIRECTORY FOR FILES ***
+	
+	var saveLocation = new Dir(DIRECTORY);
+	if (!saveLocation.exists()) 
+	{
+		try { saveLocation.mkdir(DIRECTORY); }
+		catch ( e )
+		{
+			Output.println("Failed to create directory at " + dirName);
+			return EXIT_FAILURE;
+		}
+		Output.println("Created " + DIRECTORY + " directory.");
+	}
+	// move to directory where files will be exported to
+	saveLocation.cd(DIRECTORY);
+
+	var FILEPATH = DIRECTORY + fileName;
+
+	// *** TRY TO OPEN FILE ***
+	var f = new File( FILEPATH );
+    try
+    {
+    	f.open(mode);
+    }
+    catch( e )
+    {
+    	Output.println("File at " + FILEPATH + " can not be opened.");
+    	return EXIT_FAILURE;
+    }
+	
+	if (f.writable())
+	{
+		if (columnNames.length < 1) 
+		{
+			Output.println("Invalid column names array. Length must be > 0.")
+			return EXIT_FAILURE;
+		}
+		f.write(columnNames[0]);
+		for (i = 1; i < columnNames.length; i++) {f.write("," + columnNames[i]);}
+		f.write("\n");
+		for (i = 0; i < columnData[0].length; i++)
+		{
+			f.write(columnData[0][i]);
+			for (j = 1; j < columnData.length; j++)
+			{
+				f.write("," + columnData[j][i]);
+			}
+			f.write("\n");
+		}
+		f.flush();
+	}
+	else
+	{
+		Output.println("File is not writable.");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+}
