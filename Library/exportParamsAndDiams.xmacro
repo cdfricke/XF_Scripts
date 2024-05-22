@@ -1,6 +1,7 @@
 // Programmer: Connor Fricke
 // File: exportParamsAndDiams.xmacro
 // Latest Revision: 30-April-2024 --> Created
+// THIS MACRO FILE IS FOR TESTING AND DEVELOPMENT OF THE exportToCSV FUNCTION
 
 var OUTPUT_CSV = "test.csv";
 var OUTPUT_LOCATION = "CSVFiles/"; // relative to project directory because first char is not '/'
